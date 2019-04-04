@@ -31,9 +31,9 @@ class _BoardState extends State<Board> {
   StreamSubscription<RecordStatus> recSub;
   double rota = 0;
   record() async {
-    var dir = (await getExternalStorageDirectory()).path;
-    Directory('$dir/fsb/').create();
-    curPath = await fs.startRecorder('$dir/fsb/${uuid.v4()}.mp4');
+    var dir = '${(await getExternalStorageDirectory()).path}/fsb/';
+    Directory(dir).create();
+    curPath = await fs.startRecorder('$dir${uuid.v4()}.mp4');
     recSub = fs.onRecorderStateChanged.listen((e) {
       if (e != null) { setState(() { isRec = true; }); if (e.currentPosition.toInt() >= 10000) stop(); rota += 0.017; }
     });
@@ -88,7 +88,7 @@ class Sound extends StatefulWidget {
   final Function remove;
   @override _SoundState createState() => _SoundState();
 }
-class _SoundState extends State<Sound> with SingleTickerProviderStateMixin {
+class _SoundState extends State<Sound> {
   bool isPlaying = false;
   double progress = 0;
   int animDur = 1000;
