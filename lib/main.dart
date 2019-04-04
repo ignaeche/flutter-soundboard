@@ -62,7 +62,7 @@ class _BoardState extends State<Board> {
       floatingActionButton: FloatingActionButton.extended(
         label: Text(isRec ? 'stop' : 'record'),
         icon: isRec ? Transform.rotate(angle: rota, child: Icon(Icons.stop)) : Icon(Icons.mic),
-        onPressed: () => isRec ? stop() : record(),
+        onPressed: isRec ? stop : record,
       ),
     );
   }
