@@ -11,11 +11,9 @@ FlutterSound fs = FlutterSound();
 void main() => runApp(App());
 
 class App extends StatelessWidget {
-  @override Widget build(BuildContext context) {
-    return MaterialApp(title: 'SOUNDBOARD', home: Board(),
-      theme: ThemeData(primaryColor: Colors.black, primarySwatch: Colors.deepOrange, fontFamily: 'MajorMonoDisplay'),
-    );
-  }
+  @override Widget build(BuildContext context) => MaterialApp(title: 'SOUNDBOARD', home: Board(),
+    theme: ThemeData(primaryColor: Colors.black, primarySwatch: Colors.deepOrange, fontFamily: 'MajorMonoDisplay'),
+  );
 }
 class Board extends StatefulWidget {
   Board({Key key}) : super(key: key);
@@ -41,15 +39,16 @@ class _BoardState extends State<Board> {
   }
   save() async => (await SharedPreferences.getInstance()).setStringList('paths', paths);
   Future<List<String>> load() async => paths = (await SharedPreferences.getInstance()).getStringList('paths') ?? List();
-  void remove(ctx, path) {
+  remove(ctx, path) {
     Scaffold.of(ctx)..removeCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text('SOUND removed', style: TextStyle(fontFamily: 'MajorMonoDisplay')), duration: Duration(seconds: 2)));
     setState(() { paths.remove(path); save(); File(path).delete(); });
   }
+  remAll() => setState(() { while (paths.isNotEmpty) { File(paths.removeLast()).delete(); } save(); });
   @override Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(elevation: 0, centerTitle: true,
-        title: Text('SOUNDboard', textScaleFactor: 1.5),
+        title: Text('SOUNDboard', textScaleFactor: 1.5), actions: [IconButton(icon: Icon(Icons.delete_sweep), onPressed: remAll, tooltip: 'remove all')],
       ),
       body: Center(child: _buildFuture()),
       floatingActionButton: FloatingActionButton.extended(label: Text(isRec ? 'stop' : 'record'),
@@ -70,9 +69,7 @@ class _BoardState extends State<Board> {
 }
 class Sound extends StatefulWidget {
   Sound({Key key, this.path, this.remove, this.enable}) : super(key: key);
-  final String path;
-  final Function remove;
-  final bool enable;
+  final String path; final Function remove; final bool enable;
   @override _SoundState createState() => _SoundState();
 }
 class _SoundState extends State<Sound> {
