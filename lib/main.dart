@@ -49,14 +49,15 @@ class _BoardState extends State<Board> {
   Future<List<String>> load() async {
     return paths = (await SharedPreferences.getInstance()).getStringList('paths') ?? List();
   }
-  void remove(String path) {
+  void remove(ctx, path) {
+    Scaffold.of(ctx).showSnackBar(SnackBar(content: Text('SOUND removed', style: TextStyle(fontFamily: 'MajorMonoDisplay'))));
     setState(() { paths.remove(path); save(); File(path).delete(); });
   }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(elevation: 0, centerTitle: true,
-        title: Text('SOUNDBOARD', textScaleFactor: 1.5),
+        title: Text('SOUNDboard', textScaleFactor: 1.5),
       ),
       body: Center(child: _buildFuture()),
       floatingActionButton: FloatingActionButton.extended(
@@ -71,7 +72,7 @@ class _BoardState extends State<Board> {
       builder: (ctx, AsyncSnapshot<List<String>> snap) {
         switch (snap.connectionState) {
           case ConnectionState.waiting: case ConnectionState.done:
-            return snap.hasData && snap.data.isNotEmpty ? _buildGrid(snap.data) : Text('record a sound to start!');
+            return snap.hasData && snap.data.isNotEmpty ? _buildGrid(snap.data) : Text('record a SOUND to start!');
           default: return CircularProgressIndicator();
         }
       },
@@ -120,7 +121,7 @@ class _SoundState extends State<Sound> {
         shape: BoxShape.circle,
         gradient: SweepGradient(colors: [Colors.deepOrangeAccent[100], Colors.deepOrangeAccent, Colors.transparent], stops: [0, progress, progress]),
       ),
-      child: GestureDetector(onLongPress: () => widget.remove(widget.path), child: _buildButton()),
+      child: GestureDetector(onLongPress: () => widget.remove(context, widget.path), child: _buildButton()),
     );
   }
   _buildButton() {
