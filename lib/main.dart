@@ -41,14 +41,14 @@ class _BoardState extends State<Board> {
   Future<List<String>> load() async => paths = (await SharedPreferences.getInstance()).getStringList('paths') ?? List();
   remove(ctx, path) {
     Scaffold.of(ctx)..removeCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text('SOUND removed', style: TextStyle(fontFamily: 'MajorMonoDisplay')), duration: Duration(seconds: 2)));
+      ..showSnackBar(SnackBar(content: Text('SOUND deleted', style: TextStyle(fontFamily: 'MajorMonoDisplay')), duration: Duration(seconds: 2)));
     setState(() { paths.remove(path); save(); File(path).delete(); });
   }
   remAll() => setState(() { while (paths.isNotEmpty) { File(paths.removeLast()).delete(); } save(); });
   @override Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(elevation: 0, centerTitle: true,
-        title: Text('SOUNDboard', textScaleFactor: 1.5), actions: [IconButton(icon: Icon(Icons.delete_sweep), onPressed: remAll, tooltip: 'remove all')],
+        title: Text('SOUNDboard', textScaleFactor: 1.5), actions: [IconButton(icon: Icon(Icons.delete_sweep), onPressed: remAll, tooltip: 'delete all')],
       ),
       body: Center(child: _buildFuture()),
       floatingActionButton: FloatingActionButton.extended(label: Text(isRec ? 'stop' : 'record'),
