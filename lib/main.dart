@@ -71,7 +71,7 @@ class _BoardState extends State<Board> {
       builder: (ctx, AsyncSnapshot<List<String>> snap) {
         switch (snap.connectionState) {
           case ConnectionState.waiting: case ConnectionState.done:
-            return snap.hasData && snap.data.isNotEmpty ? _buildGrid(snap.data) : Text('Record a sound to start!');
+            return snap.hasData && snap.data.isNotEmpty ? _buildGrid(snap.data) : Text('record a sound to start!');
           default: return CircularProgressIndicator();
         }
       },
@@ -79,13 +79,14 @@ class _BoardState extends State<Board> {
   }
   _buildGrid(List<String> list) {
     return GridView.count(padding: EdgeInsets.all(16.0), crossAxisCount: 3, crossAxisSpacing: 16.0, mainAxisSpacing: 16.0,
-      children: list.map((p) => Sound(path: p, remove: remove)).toList());
+      children: list.map((p) => Sound(path: p, remove: remove, enable: !isRec)).toList());
   }
 }
 class Sound extends StatefulWidget {
-  Sound({Key key, this.path, this.remove}) : super(key: key);
+  Sound({Key key, this.path, this.remove, this.enable}) : super(key: key);
   final String path;
   final Function remove;
+  final bool enable;
   @override _SoundState createState() => _SoundState();
 }
 class _SoundState extends State<Sound> {
@@ -125,7 +126,7 @@ class _SoundState extends State<Sound> {
   _buildButton() {
     return OutlineButton(
       shape: CircleBorder(),
-      onPressed: isPlaying ? stop : play,
+      onPressed: widget.enable ? (isPlaying ? stop : play) : null,
       child: Transform.scale(child: Icon(isPlaying ? Icons.stop : Icons.play_arrow), scale: 2),
     );
   }
