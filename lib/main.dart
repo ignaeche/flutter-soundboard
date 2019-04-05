@@ -11,12 +11,9 @@ FlutterSound fs = FlutterSound();
 void main() => runApp(App());
 
 class App extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'SOUNDBOARD',
+  @override Widget build(BuildContext context) {
+    return MaterialApp(title: 'SOUNDBOARD', home: Board(),
       theme: ThemeData(primaryColor: Colors.black, primarySwatch: Colors.deepOrange, fontFamily: 'MajorMonoDisplay'),
-      home: Board(),
     );
   }
 }
@@ -31,9 +28,8 @@ class _BoardState extends State<Board> {
   StreamSubscription<RecordStatus> recSub;
   double rota = 0;
   record() async {
-    var dir = '${(await getExternalStorageDirectory()).path}/fsb/';
-    Directory(dir).create();
-    curPath = await fs.startRecorder('$dir${uuid.v4()}.mp4');
+    var dir = '${(await getExternalStorageDirectory()).path}/fsb/'; Directory(dir).create();
+    fs.stopPlayer(); curPath = await fs.startRecorder('$dir${uuid.v4()}.mp4');
     recSub = fs.onRecorderStateChanged.listen((e) {
       if (e != null) { setState(() { isRec = true; }); if (e.currentPosition.toInt() >= 10000) stop(); rota += 0.017; }
     });
@@ -43,25 +39,19 @@ class _BoardState extends State<Board> {
     if (recSub != null) { recSub.cancel(); recSub = null; }
     setState(() { isRec = false; paths.add(curPath); curPath = null; save(); rota = 0; });
   }
-  save() async {
-    (await SharedPreferences.getInstance()).setStringList('paths', paths);
-  }
-  Future<List<String>> load() async {
-    return paths = (await SharedPreferences.getInstance()).getStringList('paths') ?? List();
-  }
+  save() async => (await SharedPreferences.getInstance()).setStringList('paths', paths);
+  Future<List<String>> load() async => paths = (await SharedPreferences.getInstance()).getStringList('paths') ?? List();
   void remove(ctx, path) {
-    Scaffold.of(ctx).showSnackBar(SnackBar(content: Text('SOUND removed', style: TextStyle(fontFamily: 'MajorMonoDisplay'))));
+    Scaffold.of(ctx).showSnackBar(SnackBar(content: Text('SOUND removed', style: TextStyle(fontFamily: 'MajorMonoDisplay')), duration: Duration(seconds: 1)));
     setState(() { paths.remove(path); save(); File(path).delete(); });
   }
-  @override
-  Widget build(BuildContext context) {
+  @override Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(elevation: 0, centerTitle: true,
         title: Text('SOUNDboard', textScaleFactor: 1.5),
       ),
       body: Center(child: _buildFuture()),
-      floatingActionButton: FloatingActionButton.extended(
-        label: Text(isRec ? 'stop' : 'record'),
+      floatingActionButton: FloatingActionButton.extended(label: Text(isRec ? 'stop' : 'record'),
         icon: isRec ? Transform.rotate(angle: rota, child: Icon(Icons.stop)) : Icon(Icons.mic),
         onPressed: isRec ? stop : record,
       ),
@@ -72,7 +62,7 @@ class _BoardState extends State<Board> {
       builder: (ctx, AsyncSnapshot<List<String>> snap) {
         switch (snap.connectionState) {
           case ConnectionState.waiting: case ConnectionState.done:
-            return snap.hasData && snap.data.isNotEmpty ? _buildGrid(snap.data) : Text('record a SOUND to start!');
+            return snap.hasData && snap.data.isNotEmpty ? _buildGrid(snap.data) : Text('record a SOUND to start!', textScaleFactor: 1.5);
           default: return CircularProgressIndicator();
         }
       },
@@ -109,10 +99,7 @@ class _SoundState extends State<Sound> {
     if (playSub != null) { playSub.cancel(); playSub = null; }
     setState(() { isPlaying = false; animDur = 1000; progress = 0; });
   }
-  @override
-  Widget build(BuildContext context) {
-    return AspectRatio(aspectRatio: 1, child: SizedBox.expand(child: _buildAC()));
-  }
+  @override Widget build(BuildContext context) => AspectRatio(aspectRatio: 1, child: SizedBox.expand(child: _buildAC()));
   _buildAC() {
     return AnimatedContainer(
       curve: isPlaying ? Curves.linear : Curves.bounceOut,
@@ -125,8 +112,7 @@ class _SoundState extends State<Sound> {
     );
   }
   _buildButton() {
-    return OutlineButton(
-      shape: CircleBorder(),
+    return OutlineButton(shape: CircleBorder(),
       onPressed: widget.enable ? (isPlaying ? stop : play) : null,
       child: Transform.scale(child: Icon(isPlaying ? Icons.stop : Icons.play_arrow), scale: 2),
     );
