@@ -58,14 +58,8 @@ class _BoardState extends State<Board> {
     );
   }
   _buildFuture() {
-    return FutureBuilder(future: load(),
-      builder: (ctx, AsyncSnapshot<List<String>> snap) {
-        switch (snap.connectionState) {
-          case ConnectionState.waiting: case ConnectionState.done:
-            return snap.hasData && snap.data.isNotEmpty ? _buildGrid(snap.data) : Text('record a SOUND to start!', textScaleFactor: 1.5);
-          default: return CircularProgressIndicator();
-        }
-      },
+    return FutureBuilder(future: load(), initialData: paths,
+      builder: (ctx, AsyncSnapshot<List<String>> snap) => snap.hasData && snap.data.isNotEmpty ? _buildGrid(snap.data) : Text('record a SOUND to start!', textScaleFactor: 1.5),
     );
   }
   _buildGrid(List<String> list) {
