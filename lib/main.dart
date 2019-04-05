@@ -42,7 +42,8 @@ class _BoardState extends State<Board> {
   save() async => (await SharedPreferences.getInstance()).setStringList('paths', paths);
   Future<List<String>> load() async => paths = (await SharedPreferences.getInstance()).getStringList('paths') ?? List();
   void remove(ctx, path) {
-    Scaffold.of(ctx).showSnackBar(SnackBar(content: Text('SOUND removed', style: TextStyle(fontFamily: 'MajorMonoDisplay')), duration: Duration(seconds: 1)));
+    Scaffold.of(ctx)..removeCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text('SOUND removed', style: TextStyle(fontFamily: 'MajorMonoDisplay')), duration: Duration(seconds: 2)));
     setState(() { paths.remove(path); save(); File(path).delete(); });
   }
   @override Widget build(BuildContext context) {
