@@ -79,7 +79,7 @@ class _SoundState extends State<Sound> {
   StreamSubscription<PlayStatus> playSub;
   play() async {
     try { await fs.stopPlayer(); } catch(e) {}
-    setState(() { animDur = 1; });
+    setState(() => animDur = 1);
     await fs.startPlayer(widget.path);
     playSub = fs.onPlayerStateChanged.listen((e) {
       if (e != null) setState(() { isPlaying = true; progress = (e.currentPosition/e.duration*100).ceilToDouble()/100; });
@@ -93,11 +93,9 @@ class _SoundState extends State<Sound> {
   }
   @override Widget build(BuildContext context) => AspectRatio(aspectRatio: 1, child: SizedBox.expand(child: _buildAC()));
   _buildAC() {
-    return AnimatedContainer(
-      curve: isPlaying ? Curves.linear : Curves.bounceOut,
+    return AnimatedContainer(curve: isPlaying ? Curves.linear : Curves.bounceOut,
       duration: Duration(milliseconds: animDur),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
+      decoration: BoxDecoration(shape: BoxShape.circle,
         gradient: SweepGradient(colors: [Colors.deepOrangeAccent[100], Colors.deepOrangeAccent, Colors.transparent], stops: [0, progress, progress]),
       ),
       child: GestureDetector(onLongPress: () => widget.remove(context, widget.path), child: _buildButton()),
