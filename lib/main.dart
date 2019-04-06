@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_sound/flutter_sound.dart';
+import 'package:flutter_sound/android_encoder.dart';
 import 'package:uuid/uuid.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -27,7 +28,7 @@ class _BoardState extends State<Board> {
   double rota = 0;
   record() async {
     var dir = '${(await getExternalStorageDirectory()).path}/fsb/'; Directory(dir).create();
-    fs.stopPlayer(); curPath = await fs.startRecorder('$dir${uuid.v4()}.mp4');
+    fs.stopPlayer(); curPath = await fs.startRecorder('$dir${uuid.v4()}.mp4', androidEncoder: AndroidEncoder.HE_AAC, bitRate: 96000);
     recSub = fs.onRecorderStateChanged.listen((e) {
       if (e != null) { setState(() { isRec = true; }); if (e.currentPosition.toInt() >= 10000) stop(); rota += 0.017; }
     });
@@ -45,27 +46,22 @@ class _BoardState extends State<Board> {
     setState(() { paths.remove(path); save(); File(path).delete(); });
   }
   remAll() => setState(() { while (paths.isNotEmpty) { File(paths.removeLast()).delete(); } save(); });
-  @override Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(elevation: 0, centerTitle: true,
-        title: Text('SOUNDboard', textScaleFactor: 1.5), actions: [IconButton(icon: Icon(Icons.delete_sweep), onPressed: remAll, tooltip: 'delete all')],
-      ),
-      body: Center(child: _buildFuture()),
-      floatingActionButton: FloatingActionButton.extended(label: Text(isRec ? 'stop' : 'record'),
-        icon: isRec ? Transform.rotate(angle: rota, child: Icon(Icons.stop)) : Icon(Icons.mic),
-        onPressed: isRec ? stop : record,
-      ),
-    );
-  }
-  _buildFuture() {
-    return FutureBuilder(future: load(), initialData: paths,
-      builder: (ctx, AsyncSnapshot<List<String>> snap) => snap.hasData && snap.data.isNotEmpty ? _buildGrid(snap.data) : Text('record a SOUND to start!', textScaleFactor: 1.5),
-    );
-  }
-  _buildGrid(List<String> list) {
-    return GridView.count(padding: EdgeInsets.all(16.0), crossAxisCount: 3, crossAxisSpacing: 16.0, mainAxisSpacing: 16.0,
-      children: list.map((p) => Sound(path: p, remove: remove, enable: !isRec)).toList());
-  }
+  @override Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(elevation: 0, centerTitle: true,
+      title: Text('SOUNDboard', textScaleFactor: 1.5), actions: [IconButton(icon: Icon(Icons.delete_sweep), onPressed: remAll, tooltip: 'delete all')],
+    ),
+    body: Center(child: _buildFuture()),
+    floatingActionButton: FloatingActionButton.extended(label: Text(isRec ? 'stop' : 'record'),
+      icon: isRec ? Transform.rotate(angle: rota, child: Icon(Icons.stop)) : Icon(Icons.mic),
+      onPressed: isRec ? stop : record,
+    ),
+  );
+  _buildFuture() => FutureBuilder(future: load(), initialData: paths,
+    builder: (ctx, AsyncSnapshot<List<String>> snap) => snap.hasData && snap.data.isNotEmpty ? _buildGrid(snap.data) : Text('record a SOUND to start!', textScaleFactor: 1.5),
+  );
+  _buildGrid(List<String> list) => GridView.count(padding: EdgeInsets.all(16.0), crossAxisCount: 3, crossAxisSpacing: 16.0, mainAxisSpacing: 16.0,
+    children: list.map((p) => Sound(path: p, remove: remove, enable: !isRec)).toList(),
+  );
 }
 class Sound extends StatefulWidget {
   Sound({Key key, this.path, this.remove, this.enable}) : super(key: key);
@@ -92,19 +88,15 @@ class _SoundState extends State<Sound> {
     setState(() { isPlaying = false; animDur = 1000; progress = 0; });
   }
   @override Widget build(BuildContext context) => AspectRatio(aspectRatio: 1, child: SizedBox.expand(child: _buildAC()));
-  _buildAC() {
-    return AnimatedContainer(curve: isPlaying ? Curves.linear : Curves.bounceOut,
-      duration: Duration(milliseconds: animDur),
-      decoration: BoxDecoration(shape: BoxShape.circle,
-        gradient: SweepGradient(colors: [Colors.deepOrangeAccent[100], Colors.deepOrangeAccent, Colors.transparent], stops: [0, progress, progress]),
-      ),
-      child: GestureDetector(onLongPress: () => widget.remove(context, widget.path), child: _buildButton()),
-    );
-  }
-  _buildButton() {
-    return OutlineButton(shape: CircleBorder(),
-      onPressed: widget.enable ? (isPlaying ? stop : play) : null,
-      child: Transform.scale(child: Icon(isPlaying ? Icons.stop : Icons.play_arrow), scale: 2),
-    );
-  }
+  _buildAC() => AnimatedContainer(curve: isPlaying ? Curves.linear : Curves.bounceOut,
+    duration: Duration(milliseconds: animDur),
+    decoration: BoxDecoration(shape: BoxShape.circle,
+      gradient: SweepGradient(colors: [Colors.deepOrangeAccent[100], Colors.deepOrangeAccent, Colors.transparent], stops: [0, progress, progress]),
+    ),
+    child: GestureDetector(onLongPress: () => widget.remove(context, widget.path), child: _buildButton()),
+  );
+  _buildButton() => OutlineButton(shape: CircleBorder(),
+    onPressed: widget.enable ? (isPlaying ? stop : play) : null,
+    child: Transform.scale(child: Icon(isPlaying ? Icons.stop : Icons.play_arrow), scale: 2),
+  );
 }
