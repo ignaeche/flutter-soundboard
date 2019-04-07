@@ -10,7 +10,6 @@ import 'package:path_provider/path_provider.dart';
 Uuid uuid = Uuid();
 FlutterSound fs = FlutterSound();
 void main() => runApp(App());
-
 class App extends StatelessWidget {
   @override Widget build(BuildContext context) => MaterialApp(title: 'SOUNDBOARD', home: Board(),
     theme: ThemeData(primaryColor: Colors.black, primarySwatch: Colors.deepOrange, fontFamily: 'MajorMonoDisplay'),
@@ -29,9 +28,7 @@ class _BoardState extends State<Board> {
   record() async {
     var dir = '${(await getExternalStorageDirectory()).path}/fsb/'; Directory(dir).create();
     fs.stopPlayer(); curPath = await fs.startRecorder('$dir${uuid.v4()}.mp4', androidEncoder: AndroidEncoder.HE_AAC, bitRate: 96000);
-    recSub = fs.onRecorderStateChanged.listen((e) {
-      if (e != null) { setState(() { isRec = true; }); if (e.currentPosition.toInt() >= 10000) stop(); rota += 0.017; }
-    });
+    recSub = fs.onRecorderStateChanged.listen((e) { if (e != null) { setState(() { isRec = true; }); if (e.currentPosition.toInt() >= 10000) stop(); rota += 0.017; }});
   }
   stop() async {
     fs.stopRecorder();
@@ -52,14 +49,14 @@ class _BoardState extends State<Board> {
     ),
     body: Center(child: _buildFuture()),
     floatingActionButton: FloatingActionButton.extended(label: Text(isRec ? 'stop' : 'record'),
-      icon: isRec ? Transform.rotate(angle: rota, child: Icon(Icons.stop)) : Icon(Icons.mic),
-      onPressed: isRec ? stop : record,
+      icon: isRec ? Transform.rotate(angle: rota, child: Icon(Icons.stop)) : Icon(Icons.mic), onPressed: isRec ? stop : record,
     ),
   );
   _buildFuture() => FutureBuilder(future: load(), initialData: paths,
     builder: (ctx, AsyncSnapshot<List<String>> snap) => snap.hasData && snap.data.isNotEmpty ? _buildGrid(snap.data) : Text('record a SOUND to start!', textScaleFactor: 1.5),
   );
-  _buildGrid(List<String> list) => GridView.count(padding: EdgeInsets.all(16.0), crossAxisCount: 3, crossAxisSpacing: 16.0, mainAxisSpacing: 16.0,
+  _buildGrid(List<String> list) => GridView.count(padding: EdgeInsets.all(16.0), crossAxisSpacing: 16.0, mainAxisSpacing: 16.0,
+    crossAxisCount: MediaQuery.of(context).orientation == Orientation.portrait ? 3 : 5,
     children: list.map((p) => Sound(path: p, remove: remove, enable: !isRec)).toList(),
   );
 }
@@ -71,16 +68,13 @@ class Sound extends StatefulWidget {
 class _SoundState extends State<Sound> {
   bool isPlaying = false;
   double progress = 0;
-  int animDur = 1000;
+  int animDur = 1;
   StreamSubscription<PlayStatus> playSub;
   play() async {
     try { await fs.stopPlayer(); } catch(e) {}
     setState(() => animDur = 1);
     await fs.startPlayer(widget.path);
-    playSub = fs.onPlayerStateChanged.listen((e) {
-      if (e != null) setState(() { isPlaying = true; progress = (e.currentPosition/e.duration*100).ceilToDouble()/100; });
-      else stop();
-    });
+    playSub = fs.onPlayerStateChanged.listen((e) { if (e != null) setState(() { isPlaying = true; progress = (e.currentPosition/e.duration*100).ceilToDouble()/100; }); else stop(); });
   }
   stop() async {
     try { await fs.stopPlayer(); } catch(e) {}
@@ -88,8 +82,7 @@ class _SoundState extends State<Sound> {
     setState(() { isPlaying = false; animDur = 1000; progress = 0; });
   }
   @override Widget build(BuildContext context) => AspectRatio(aspectRatio: 1, child: SizedBox.expand(child: _buildAC()));
-  _buildAC() => AnimatedContainer(curve: isPlaying ? Curves.linear : Curves.bounceOut,
-    duration: Duration(milliseconds: animDur),
+  _buildAC() => AnimatedContainer(curve: isPlaying ? Curves.linear : Curves.bounceOut, duration: Duration(milliseconds: animDur),
     decoration: BoxDecoration(shape: BoxShape.circle,
       gradient: SweepGradient(colors: [Colors.deepOrangeAccent[100], Colors.deepOrangeAccent, Colors.transparent], stops: [0, progress, progress]),
     ),
